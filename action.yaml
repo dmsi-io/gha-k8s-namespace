@@ -35,6 +35,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    ###### Setup Environment Variables ######
     - name: Checkout
       uses: actions/checkout@v2
       with:
@@ -55,4 +56,72 @@ runs:
         echo "FROM_NAMESPACE=$FROM_NAMESPACE"
 
         echo "FROM_NAMESPACE=$FROM_NAMESPACE" >> $GITHUB_ENV
+      shell: bash
+
+    ###### GCloud Setup ######
+
+    - name: Setup GCloud Auth
+      id: auth
+      uses: google-github-actions/auth@v0.4.0
+      with:
+        credentials_json: ${{ inputs.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0.2.1
+
+    - name: Authenticate GKE cluster
+      run: gcloud container clusters get-credentials ${{ inputs.GKE_CLUSTER_NAME }} --zone ${{ inputs.GCP_ZONE }} --project ${{ inputs.GCP_PROJECT_ID }}
+      shell: bash
+
+    ###### Deploy Kubernetes Artifacts ######
+
+    - name: Deploy Namespace
+      run: |
+        cat ${{ inputs.namespace }} | envsubst | kubectl apply -f - 
+      shell: bash
+      working-directory: ${{ github.action_path }}/k8s
+
+    - name: Deploy Ingresses
+      run: |
+        for n in $(kubectl get -o=name ingress -n $OLD_NAMESPACE)
+        do
+            if [[ $(kubectl get $n -n $NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$n already exists in $NAMESPACE" 
+            else 
+                kubectl get $n -n $OLD_NAMESPACE -o json \
+                    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+                    | sed -e "s:$OLD_NAMESPACE:$NAMESPACE:g" \
+                    | kubectl apply -n $NAMESPACE -f -
+            fi
+        done
+      shell: bash
+
+    - name: Copy Secrets,ConfigMaps
+      run: |
+        for n in $(kubectl get -o=name secret,configmap -n $OLD_NAMESPACE)
+        do
+            if [[ $(kubectl get $n -n $NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$n already exists in $NAMESPACE" 
+            else 
+                kubectl get $n -n $OLD_NAMESPACE -o json \
+                    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+                    | kubectl apply -n $NAMESPACE -f -
+            fi
+        done
+      shell: bash
+
+    - name: Deploy ExternalName Services
+      run: |
+        for n in $(kubectl get -o=name service -n $OLD_NAMESPACE)
+        do
+            if [[ $(kubectl get $n -n $NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$n already exists in $NAMESPACE" 
+            else 
+                export EXTERNAL_SERVICE=${n##*/}
+                export PORT=$(kubectl get $n -n $OLD_NAMESPACE -o json \
+                        | jq -r '.spec.ports[].port')
+
+                cat external-service-template.yaml | envsubst | kubectl apply -f - 
+            fi
+        done
       shell: bash

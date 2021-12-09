@@ -16,3 +16,4 @@ jobs:
           GCP_ZONE: ${{ secrets.GCP_ZONE }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           TLD: ${{ secrets.TOP_LEVEL_DOMAIN }}
+          FROM_NAMESPACE: develop
