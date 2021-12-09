@@ -17,7 +17,7 @@ steps:
       TLD: ${{ secrets.TOP_LEVEL_DOMAIN }}
 ```
 
-> It is recommended to leave the if statement on this step to only run this action on creation of new branches. However, this action is not destructive in nature an could be run on every commit.
+> It is recommended to leave the if statement on this step to only run this action on creation of new branches. However, this action is not destructive in nature and could be run on every commit.
 
 ### Optional inputs
 
