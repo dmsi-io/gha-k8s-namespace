@@ -121,7 +121,7 @@ runs:
         do
             if [[ $(kubectl get deployment $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
                 echo "$repo deployment already exists in $TO_NAMESPACE" 
-            else 
+            elif [[ $(kubectl get deployment $repo -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
                 kubectl get deployment $repo -n $FROM_NAMESPACE -o json \
                 | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
                 | kubectl apply -n $TO_NAMESPACE -f -
@@ -136,7 +136,7 @@ runs:
         do
             if [[ $(kubectl get service $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
                 echo "$repo service already exists in $TO_NAMESPACE" 
-            else 
+            elif [[ $(kubectl get service $repo -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then 
                 kubectl get service $repo -n $FROM_NAMESPACE -o json \
                 | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
                 | kubectl apply -n $TO_NAMESPACE -f -
