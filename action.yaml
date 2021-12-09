@@ -32,6 +32,10 @@ inputs:
     required: false
     default: ${{ github.event.repository.default_branch }}
 
+  repos:
+    description: 'Comma separated list of repositories to instead deploy a copy from the default namespace'
+    required: false
+
 runs:
   using: 'composite'
   steps:
@@ -106,6 +110,36 @@ runs:
                 kubectl get $n -n $FROM_NAMESPACE -o json \
                     | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
                     | kubectl apply -n $TO_NAMESPACE -f -
+            fi
+        done
+      shell: bash
+
+    - name: Deploy Default Deployments
+      run: |
+        REPOS="${{ inputs.repos }}"
+        for repo in ${REPOS//,/ }
+        do
+            if [[ $(kubectl get deployment $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$repo deployment already exists in $TO_NAMESPACE" 
+            else 
+                kubectl get deployment $repo -n $FROM_NAMESPACE -o json \
+                | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
+                | kubectl apply -n $TO_NAMESPACE -f -
+            fi
+        done
+      shell: bash
+
+    - name: Deploy Default Services
+      run: |
+        REPOS="${{ inputs.repos }}"
+        for repo in ${REPOS//,/ }
+        do
+            if [[ $(kubectl get service $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$repo service already exists in $TO_NAMESPACE" 
+            else 
+                kubectl get service $repo -n $FROM_NAMESPACE -o json \
+                | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
+                | kubectl apply -n $TO_NAMESPACE -f -
             fi
         done
       shell: bash
