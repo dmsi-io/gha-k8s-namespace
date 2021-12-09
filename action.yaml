@@ -125,6 +125,8 @@ runs:
                 kubectl get deployment $repo -n $FROM_NAMESPACE -o json \
                 | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
                 | kubectl apply -n $TO_NAMESPACE -f -
+            else
+                echo "$repo deployment not found in $FROM_NAMESPACE"
             fi
         done
       shell: bash
@@ -140,6 +142,8 @@ runs:
                 kubectl get service $repo -n $FROM_NAMESPACE -o json \
                 | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
                 | kubectl apply -n $TO_NAMESPACE -f -
+            else
+                echo "$repo service not found in $FROM_NAMESPACE"
             fi
         done
       shell: bash
