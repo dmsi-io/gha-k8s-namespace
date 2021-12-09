@@ -1,0 +1,58 @@
+name: 'Prepare Kubernetes Namespace'
+description: 'Many applications require others to exist within the same namespace. Instead of creating many branches on other repos, this action will simply deploy an ExternalName for other services.'
+
+inputs:
+  GCP_SA_KEY: 
+    description: 'GCP Service Account Key (JSON)'
+    required: true
+
+  GKE_CLUSTER_NAME:
+    description: 'Google Kubernetes Engine Cluster name'
+    required: true
+
+  GCP_ZONE: 
+    description: 'GCP Zone'
+    required: true
+
+  GCP_PROJECT_ID:
+    description: 'GCP Project ID'
+    required: true
+
+  TLD:
+    description: 'Top Level Domain to create subdomain on.'
+    required: true
+
+  TO_NAMESPACE: 
+    description: 'Allows to override the desired NAMESPACE variable'
+    required: false
+    default: ${{ github.ref_name }}
+
+  FROM_NAMESPACE: 
+    description: 'Allows to override the desired NAMESPACE variable'
+    required: false
+    default: ${{ github.event.repository.default_branch }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: dmsi-io/gha-env-variables
+        path: gha-env-variables
+
+    - name: TO_NAMESPACE
+      run: |
+        TO_NAMESPACE=$(gha-env-variables/clean_variable.sh ${{ inputs.TO_NAMESPACE }})
+        echo "TO_NAMESPACE=$TO_NAMESPACE"
+
+        echo "TO_NAMESPACE=$TO_NAMESPACE" >> $GITHUB_ENV
+      shell: bash
+
+    - name: FROM_NAMESPACE
+      run: |
+        FROM_NAMESPACE=$(gha-env-variables/clean_variable.sh ${{ inputs.FROM_NAMESPACE }})
+        echo "FROM_NAMESPACE=$FROM_NAMESPACE"
+
+        echo "FROM_NAMESPACE=$FROM_NAMESPACE" >> $GITHUB_ENV
+      shell: bash
