@@ -1,0 +1,10 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: $EXTERNAL_SERVICE
+  namespace: $TO_NAMESPACE
+spec:
+  type: ExternalName
+  externalName: $EXTERNAL_SERVICE.$FROM_NAMESPACE.svc.cluster.local
+  ports:
+  - port: $PORT
