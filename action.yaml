@@ -119,15 +119,16 @@ runs:
         REPOS="${{ inputs.repos }}"
         for repo in ${REPOS//,/ }
         do
-            if [[ $(kubectl get deployment $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
-                echo "$repo deployment already exists in $TO_NAMESPACE" 
-            elif [[ $(kubectl get deployment $repo -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
-                kubectl get deployment $repo -n $FROM_NAMESPACE -o json \
-                | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
-                | kubectl apply -n $TO_NAMESPACE -f -
-            else
-                echo "$repo deployment not found in $FROM_NAMESPACE"
-            fi
+          REPO_SERVICE=$(gha-env-variables/clean_variable.sh $repo)
+          if [[ $(kubectl get deployment $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+              echo "$REPO_SERVICE deployment already exists in $TO_NAMESPACE" 
+          elif [[ $(kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
+              kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o json \
+              | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
+              | kubectl apply -n $TO_NAMESPACE -f -
+          else
+              echo "$REPO_SERVICE deployment not found in $FROM_NAMESPACE"
+          fi
         done
       shell: bash
 
@@ -136,15 +137,16 @@ runs:
         REPOS="${{ inputs.repos }}"
         for repo in ${REPOS//,/ }
         do
-            if [[ $(kubectl get service $repo -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
-                echo "$repo service already exists in $TO_NAMESPACE" 
-            elif [[ $(kubectl get service $repo -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then 
-                kubectl get service $repo -n $FROM_NAMESPACE -o json \
-                | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
-                | kubectl apply -n $TO_NAMESPACE -f -
-            else
-                echo "$repo service not found in $FROM_NAMESPACE"
-            fi
+          REPO_SERVICE=$(gha-env-variables/clean_variable.sh $repo)
+          if [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+              echo "$REPO_SERVICE service already exists in $TO_NAMESPACE" 
+          elif [[ $(kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then 
+              kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o json \
+              | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
+              | kubectl apply -n $TO_NAMESPACE -f -
+          else
+              echo "$REPO_SERVICE service not found in $FROM_NAMESPACE"
+          fi
         done
       shell: bash
 
