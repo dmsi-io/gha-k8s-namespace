@@ -164,8 +164,7 @@ runs:
                 export PORT=$(kubectl get $n -n $FROM_NAMESPACE -o json \
                         | jq -r '.spec.ports[].port')
 
-                cat external-service-template.yaml | envsubst | kubectl apply -f - 
+                cat ${{ github.action_path }}/k8s/external-service-template.yaml | envsubst | kubectl apply -f - 
             fi
         done
       shell: bash
-      working-directory: ${{ github.action_path }}/k8s
