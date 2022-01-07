@@ -143,7 +143,7 @@ runs:
         for repo in ${REPOS//,/ }
         do
           REPO_SERVICE=$(gha-env-variables/clean_variable.sh $repo)
-          if [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+          if [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]] && [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE -o=jsonpath='{.spec.type}') == "ExternalName" ]]; then
               echo "$REPO_SERVICE service already exists in $TO_NAMESPACE" 
           elif [[ $(kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then 
               kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o json \
@@ -177,7 +177,7 @@ runs:
       # https://kubernetes.github.io/ingress-nginx/how-it-works/#when-a-reload-is-required
       run: |
         SERVICE_NAME=$(gha-env-variables/clean_variable.sh ${{ inputs.SERVICE_NAME }})
-        if [[ $(kubectl get service $SERVICE_NAME -n $TO_NAMESPACE -o=jsonpath='{.spec.type}') = "ExternalName" ]]; then
+        if [[ $(kubectl get service $SERVICE_NAME -n $TO_NAMESPACE --ignore-not-found -o=jsonpath='{.spec.type}') = "ExternalName" ]]; then
             kubectl delete service $SERVICE_NAME -n $TO_NAMESPACE
         fi
       shell: bash
