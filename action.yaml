@@ -156,7 +156,7 @@ runs:
         for n in $(kubectl get -o=name service -n $FROM_NAMESPACE)
         do
             export EXTERNAL_SERVICE=${n##*/}
-            if [ "$SERVICE" = "$EXTERNAL_SERVICE" ]; then
+            if [ "$SERVICE_NAME" = "$EXTERNAL_SERVICE" ]; then
               echo "$n will be deployed by acting repo"
             elif [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
                 echo "$n already exists in $TO_NAMESPACE" 
