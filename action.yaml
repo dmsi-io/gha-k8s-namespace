@@ -152,12 +152,15 @@ runs:
 
     - name: Deploy ExternalName Services
       run: |
+        SERVICE_NAME=$(gha-env-variables/clean_variable.sh ${{ github.repository }})
         for n in $(kubectl get -o=name service -n $FROM_NAMESPACE)
         do
-            if [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+            export EXTERNAL_SERVICE=${n##*/}
+            if [ "$SERVICE" = "$EXTERNAL_SERVICE" ]; then
+              echo "$n will be deployed by acting repo"
+            elif [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
                 echo "$n already exists in $TO_NAMESPACE" 
             else 
-                export EXTERNAL_SERVICE=${n##*/}
                 export PORT=$(kubectl get $n -n $FROM_NAMESPACE -o json \
                         | jq -r '.spec.ports[].port')
 
