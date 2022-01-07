@@ -147,7 +147,7 @@ runs:
               echo "$REPO_SERVICE service already exists in $TO_NAMESPACE" 
           elif [[ $(kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
               # Forces ingress-controller reload
-              kubectl delete service $REPO_SERVICE -n $FROM_NAMESPACE --ignore-not-found
+              kubectl delete service $REPO_SERVICE -n $TO_NAMESPACE --ignore-not-found
 
               kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o json \
               | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.spec["clusterIP","clusterIPs"],.spec.ports[].nodePort)' \
