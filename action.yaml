@@ -2,7 +2,7 @@ name: 'Prepare Kubernetes Namespace'
 description: 'Many applications require others to exist within the same namespace. Instead of creating many branches on other repos, this action will simply deploy an ExternalName for other services.'
 
 inputs:
-  GCP_SA_KEY: 
+  GCP_SA_KEY:
     description: 'GCP Service Account Key (JSON)'
     required: true
 
@@ -10,7 +10,7 @@ inputs:
     description: 'Google Kubernetes Engine Cluster name'
     required: true
 
-  GCP_ZONE: 
+  GCP_ZONE:
     description: 'GCP Zone'
     required: true
 
@@ -22,17 +22,17 @@ inputs:
     description: 'Top Level Domain to create subdomain on.'
     required: true
 
-  TO_NAMESPACE: 
+  TO_NAMESPACE:
     description: 'Allows to override the desired NAMESPACE variable'
     required: false
     default: ${{ github.ref_name }}
 
-  FROM_NAMESPACE: 
+  FROM_NAMESPACE:
     description: 'Allows to override the desired NAMESPACE variable'
     required: false
     default: ${{ github.event.repository.default_branch }}
 
-  SERVICE_NAME: 
+  SERVICE_NAME:
     description: 'Allows to override the desired SERVICE_NAME variable'
     required: false
     default: ${{ github.repository }}
@@ -86,7 +86,7 @@ runs:
 
     - name: Deploy Namespace
       run: |
-        cat namespace.yaml | envsubst | kubectl apply -f - 
+        cat namespace.yaml | envsubst | kubectl apply -f -
       shell: bash
       working-directory: ${{ github.action_path }}/k8s
 
@@ -143,7 +143,7 @@ runs:
         for repo in ${REPOS//,/ }
         do
           REPO_SERVICE=$(gha-env-variables/clean_variable.sh $repo)
-          if [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE -o=name ) ]] && [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE --ignore-not-found -o=jsonpath='{.spec.type}') != "ExternalName" ]]; then
+          if [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE --ignore-not-found -o=name) ]] && [[ $(kubectl get service $REPO_SERVICE -n $TO_NAMESPACE --ignore-not-found -o=jsonpath='{.spec.type}') != "ExternalName" ]]; then
               echo "$REPO_SERVICE service already exists in $TO_NAMESPACE" 
           elif [[ $(kubectl get service $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
               # Forces ingress-controller reload
