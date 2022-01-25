@@ -105,9 +105,9 @@ runs:
         done
       shell: bash
 
-    - name: Copy Secrets,ConfigMaps
+    - name: Copy Secrets,ConfigMaps,ServiceAccounts,Roles,RoleBindings
       run: |
-        for n in $(kubectl get -o=name secret,configmap -n $FROM_NAMESPACE)
+        for n in $(kubectl get -o=name secret,configmap,serviceaccount,role,rolebinding -n $FROM_NAMESPACE)
         do
             if [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
                 echo "$n already exists in $TO_NAMESPACE" 
