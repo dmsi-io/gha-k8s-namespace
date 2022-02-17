@@ -130,6 +130,7 @@ runs:
           elif [[ $(kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
               kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o json \
               | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"],.status)' \
+              | jq --argjson deployFlag '{"name": "DEPLOYED_FROM","value": "gha-k8s-namespace"}' '.spec.template.spec.containers[0].env += [$deployFlag]'
               | kubectl apply -n $TO_NAMESPACE -f -
           else
               echo "$REPO_SERVICE deployment not found in $FROM_NAMESPACE"
