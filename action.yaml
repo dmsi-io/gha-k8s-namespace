@@ -125,7 +125,7 @@ runs:
         for repo in ${REPOS//,/ }
         do
           REPO_SERVICE=$(gha-env-variables/clean_variable.sh $repo)
-          if [[ $(kubectl get deployment $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+          if [[ $(kubectl get deployment $REPO_SERVICE -n $TO_NAMESPACE -o=name --ignore-not-found) ]] && [[ ! $(kubectl get deployment graphql-api -n=redeploy-dependencies -o=json | jq -e '.spec.template.spec.containers[0].env[].value == "gha-k8s-namespace"') ]]; then
               echo "$REPO_SERVICE deployment already exists in $TO_NAMESPACE" 
           elif [[ $(kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o=name --ignore-not-found) ]]; then
               kubectl get deployment $REPO_SERVICE -n $FROM_NAMESPACE -o json \
