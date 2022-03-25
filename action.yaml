@@ -92,17 +92,15 @@ runs:
 
     - name: Deploy Ingresses
       run: |
-        for n in $(kubectl get -o=name ingress -n $FROM_NAMESPACE)
-        do
-            if [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
-                echo "$n already exists in $TO_NAMESPACE" 
-            else 
-                kubectl get $n -n $FROM_NAMESPACE -o json \
-                    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
-                    | sed -e "s:$FROM_NAMESPACE:$TO_NAMESPACE:g" \
-                    | kubectl apply -n $TO_NAMESPACE -f -
-            fi
-        done
+        INGRESS="k8s-ingress"
+        if [[ $(kubectl get ingress $INGRESS -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+            echo "$INGRESS already exists in $TO_NAMESPACE" 
+        else 
+            kubectl get ingress $INGRESS -n $FROM_NAMESPACE -o json \
+                | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+                | sed -e "s:$FROM_NAMESPACE:$TO_NAMESPACE:g" \
+                | kubectl apply -n $TO_NAMESPACE -f -
+        fi
       shell: bash
 
     - name: Copy Secrets,ConfigMaps,ServiceAccounts,Roles,RoleBindings
