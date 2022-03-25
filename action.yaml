@@ -92,12 +92,12 @@ runs:
 
     - name: Deploy Ingresses
       run: |
-        for n in $(kubectl get -o=name ingress -n $FROM_NAMESPACE)
+        INGRESS="k8s-ingress"
         do
-            if [[ $(kubectl get $n -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
-                echo "$n already exists in $TO_NAMESPACE" 
+            if [[ $(kubectl get $INGRESS -n $TO_NAMESPACE -o=name --ignore-not-found) ]]; then
+                echo "$INGRESS already exists in $TO_NAMESPACE" 
             else 
-                kubectl get $n -n $FROM_NAMESPACE -o json \
+                kubectl get $INGRESS -n $FROM_NAMESPACE -o json \
                     | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
                     | sed -e "s:$FROM_NAMESPACE:$TO_NAMESPACE:g" \
                     | kubectl apply -n $TO_NAMESPACE -f -
