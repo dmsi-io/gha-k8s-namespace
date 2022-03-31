@@ -4,6 +4,14 @@
 
 The purpose of this GitHub Action is to automate the creation of ExternalName services to allow for communication with other applications deployed into the main namespace without having to deploy a new copy into the feature branch namespace.
 
+## Setup
+
+This action is reliant on a Service Account with the following permissions:
+
+- Kubernetes Engine Admin
+
+Additionally, it is recommended to use Workload Identity Federation. If this is not setup follow the steps here: https://github.com/google-github-actions/auth#setup
+
 ## Inputs
 
 | NAME                    | DESCRIPTION                                                                              | TYPE     | REQUIRED | DEFAULT                                         |
