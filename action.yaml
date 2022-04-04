@@ -2,9 +2,18 @@ name: 'Prepare Kubernetes Namespace'
 description: 'Many applications require others to exist within the same namespace. Instead of creating many branches on other repos, this action will simply deploy an ExternalName for other services.'
 
 inputs:
+  GCP_IDENTITY_PROVIDER:
+    description: 'GCP Workload Identity Provider'
+    required: false
+
+  GCP_SERVICE_ACCOUNT:
+    description: 'GCP Service Account email'
+    required: false
+
   GCP_SA_KEY:
     description: 'GCP Service Account Key (JSON)'
-    required: true
+    required: false
+    deprecationMessage: 'It is recommended to instead use Workload Identity Federation with the GCP_IDENTITY_PROVIDER and GCP_SERVICE_ACCOUNT inputs.'
 
   GKE_CLUSTER_NAME:
     description: 'Google Kubernetes Engine Cluster name'
@@ -16,10 +25,6 @@ inputs:
 
   GCP_PROJECT_ID:
     description: 'GCP Project ID'
-    required: true
-
-  TLD:
-    description: 'Top Level Domain to create subdomain on.'
     required: true
 
   TO_NAMESPACE:
@@ -73,6 +78,8 @@ runs:
       id: auth
       uses: google-github-actions/auth@v0.4.0
       with:
+        workload_identity_provider: ${{ inputs.GCP_IDENTITY_PROVIDER }}
+        service_account: ${{ inputs.GCP_SERVICE_ACCOUNT }}
         credentials_json: ${{ inputs.GCP_SA_KEY }}
 
     - name: Set up Cloud SDK
